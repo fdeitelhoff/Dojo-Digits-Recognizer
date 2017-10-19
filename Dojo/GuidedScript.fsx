@@ -73,7 +73,11 @@ open System.IO
 // returns an array of strings for each line 
  
 // [ YOUR CODE GOES HERE! ]
- 
+
+[<Literal>]
+let trainingPath = "Dojo/trainingsample.csv"
+
+let lines = File.ReadAllLines(trainingPath)
  
 // 2. EXTRACTING COLUMNS
  
@@ -93,6 +97,9 @@ let lengths = Array.map (fun (s:string) -> s.Length) strings
 // The exact same operation above can be 
 // done using the forward pipe operator, 
 // which makes it look nicer:
+
+// let (|>) x f = f x
+// |> string someFunc
 let lengths2 = strings |> Array.map (fun s -> s.Length)
 // </F# QUICK-STARTER> 
  
@@ -102,7 +109,15 @@ let splitResult = csvToSplit.Split(',')
  
  
 // [ YOUR CODE GOES HERE! ]
- 
+
+// let test = "a,b,3";
+// let columns = test.Split(',')
+
+let mySplitFun (s:string) = s.Split(',')
+
+// let t = mySplitFun lines.[0]
+
+let columns = lines |> Array.map (mySplitFun)
  
 // 3. CLEANING UP HEADERS
  
@@ -121,6 +136,8 @@ let upToThree = someNumbers.[ .. 2 ]
 
 
 // [ YOUR CODE GOES HERE! ]
+
+let columnsWithoutHeader = columns.[ 1 .. ]
  
  
 // 4. CONVERTING FROM STRINGS TO INTS
@@ -131,12 +148,21 @@ let upToThree = someNumbers.[ .. 2 ]
 // Array.map seems like a good idea again :)
 
 // The following might help:
-let castedInt = (int)"42"
+let castedInt = int "42"
 // or, alternatively:
 let convertedInt = Convert.ToInt32("42")
  
  
 // [ YOUR CODE GOES HERE! ]
+
+let stringToInt (s:string) = Convert.ToInt32(s)
+
+let arrayToEle a = a |> Array.map stringToInt
+
+// let columnsWithInts = columnsWithoutHeader |> Array.map (fun e -> e |> Array.map (fun l -> Convert.ToInt32(l)))
+// let columnsWithInts = columnsWithoutHeader |> Array.map (fun e -> e |> Array.map stringToInt)
+let columnsWithInts = columnsWithoutHeader |> Array.map (arrayToEle)
+// let columnsWithInts = columnsWithoutHeader |> Array.map |> Array.map (fun l -> Convert.ToInt32(l))
  
  
 // 5. CONVERTING ARRAYS TO RECORDS
@@ -154,14 +180,17 @@ let example = { Label = 1; Pixels = [| 1; 2; 3; |] }
 
  
 // [ YOUR CODE GOES HERE! ]
- 
+
+type Image = { Label:int; Pixels:int[] }
+
+let images = columnsWithInts |> Array.map (fun e -> { Label = e.[0]; Pixels = e.[ 1 .. ] })
  
 // 6. COMPUTING DISTANCES
  
 // We need to compute the distance between images
 // Math reminder: the euclidean distance is
-// distance [ x1; y1; z1 ] [ x2; y2; z2 ] = 
-// sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
+// distance [ x1; y1; z1; a ] [ x2; y2; z2; b ] = 
+// sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2) + (a-b)*(a-b))
  
 // <F# QUICK-STARTER> 
 // Array.map2 could come in handy here.
@@ -180,13 +209,29 @@ let map2PointsExample (P1: int[]) (P2: int[]) =
 
 
 // Having a function like
-let distance (p1: int[]) (p2: int[]) = 42
+// let distance (p1: int[]) (p2: int[]) = 42
 // would come in very handy right now,
 // except that in this case, 
 // 42 is likely not the right answer
  
 // [ YOUR CODE GOES HERE! ]
- 
+
+// let (||>) (a,b) f = f a b
+
+//    sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
+let distance (p1: int[]) (p2: int[]) =
+    (p1,p2) 
+    ||> Array.map2 (fun e1 e2 -> (e1-e2)*(e1-e2)) 
+    |> Array.sum
+    |> float
+    |> Math.Sqrt 
+
+let a1 = [| 1; 2; |]
+let a2 = [| 3; 4; |]
+
+Math.Sqrt (float((1-3)*(1-3) + (2-4)*(2-4)))
+
+distance a1 a2
  
 // 7. WRITING THE CLASSIFIER FUNCTION
  
@@ -235,6 +280,8 @@ let classify (unknown:int[]) =
     0 
  
 // [ YOUR CODE GOES HERE! ]
+
+
  
  
 // 8. EVALUATING THE MODEL AGAINST VALIDATION DATA
