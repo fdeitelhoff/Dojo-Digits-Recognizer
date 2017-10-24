@@ -76,6 +76,8 @@ open System.IO
 
 [<Literal>]
 let trainingPath = "Dojo/trainingsample.csv"
+[<Literal>]
+let validationPath = "Dojo/validationsample.csv"
 
 let lines = File.ReadAllLines(trainingPath)
  
@@ -184,7 +186,15 @@ let example = { Label = 1; Pixels = [| 1; 2; 3; |] }
 type Image = { Label:int; Pixels:int[] }
 
 let images = columnsWithInts |> Array.map (fun e -> { Label = e.[0]; Pixels = e.[ 1 .. ] })
+
+let csvToImages (filePath) =
+    File.ReadAllLines(filePath).[ 1 .. ]
+    |> Array.map (mySplitFun)
+    |> Array.map (arrayToEle)
+    |> Array.map (fun e -> { Label = e.[0]; Pixels = e.[ 1 .. ] })
  
+csvToImages trainingPath
+
 // 6. COMPUTING DISTANCES
  
 // We need to compute the distance between images
@@ -270,6 +280,9 @@ let functionWithClosure (x: int) =
  // The classifier function should probably
 // look like this - except that this one will
 // classify everything as a 0:
+
+
+
 let classify (unknown:int[]) =
     // do something smart here
     // like find the Example with
@@ -281,8 +294,15 @@ let classify (unknown:int[]) =
  
 // [ YOUR CODE GOES HERE! ]
 
-
+let findClosestImage images i = 
+    images 
+    |> Array.minBy (fun x -> distance i.Pixels x.Pixels)
+    |> fun x -> x.Label
  
+let examples = csvToImages trainingPath
+let validations = csvToImages validationPath
+
+findClosestImage examples validations.[0]
  
 // 8. EVALUATING THE MODEL AGAINST VALIDATION DATA
  
