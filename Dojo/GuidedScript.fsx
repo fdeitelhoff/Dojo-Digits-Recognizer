@@ -302,7 +302,7 @@ let findClosestImage images i =
 let examples = csvToImages trainingPath
 let validations = csvToImages validationPath
 
-findClosestImage examples validations.[0]
+validations |> Array.map (fun v -> findClosestImage examples v)
  
 // 8. EVALUATING THE MODEL AGAINST VALIDATION DATA
  
